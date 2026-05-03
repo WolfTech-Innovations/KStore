@@ -11,7 +11,7 @@ find_package(ECM 5.80.0 REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
-find_package(KF6 REQUIRED COMPONENTS Kirigami2 I18n CoreAddons)
+find_package(KF6 REQUIRED COMPONENTS Kirigami I18n CoreAddons)
 
 add_executable(kstore
     src/main.cpp
