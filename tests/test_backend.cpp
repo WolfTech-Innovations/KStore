@@ -1,6 +1,7 @@
 #include "../src/kstorebackend.h"
 #include <QCoreApplication>
 #include <QDebug>
+#include <QTimer>
 #include <cassert>
 
 int main(int argc, char *argv[])
@@ -8,27 +9,31 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
     KStoreBackend backend;
 
-    QVariantList apps = backend.apps();
-    qDebug() << "Number of apps fetched:" << apps.length();
+    QObject::connect(&backend, &KStoreBackend::appsChanged, [&]() {
+        QVariantList apps = backend.apps();
+        if (apps.isEmpty()) return;
 
-    // Check if we have at least some apps (mock data)
-    assert(apps.length() > 0);
+        qDebug() << "Apps fetched:" << apps.size();
+        assert(apps.size() > 0);
 
-    bool foundStreaming = false;
-    bool foundRemote = false;
+        // The backend hardcodes "Android App" as category for now
+        for (const auto &appVar : apps) {
+            QVariantMap map = appVar.toMap();
+            assert(!map["name"].toString().isEmpty());
+            assert(!map["packageId"].toString().isEmpty());
+            qDebug() << "Verified App:" << map["name"].toString();
+        }
 
-    for (const auto &appVar : apps) {
-        QVariantMap map = appVar.toMap();
-        QString category = map["category"].toString();
-        if (category == "Streaming") foundStreaming = true;
-        if (category == "Remote Compatible") foundRemote = true;
-        qDebug() << "App:" << map["name"].toString() << "Category:" << category;
-    }
+        qDebug() << "Test Passed: Backend correctly handles app metadata.";
+        app.exit(0);
+    });
 
-    assert(foundStreaming);
-    assert(foundRemote);
+    backend.fetchApps("streaming");
 
-    qDebug() << "Test Passed: Backend filters and provides app data correctly.";
+    QTimer::singleShot(10000, &app, [&]() {
+        qDebug() << "Test Timed Out";
+        app.exit(1);
+    });
 
-    return 0;
+    return app.exec();
 }

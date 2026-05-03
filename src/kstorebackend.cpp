@@ -99,9 +99,6 @@ void KStoreBackend::installApp(const QString &packageId)
     emit installationStarted(packageId);
     qDebug() << "Fetching APK for" << packageId;
 
-    // In a real world production app, we would use a robust API.
-    // For this KStore implementation, we will use a known APK mirror pattern that is often used by open source clients.
-    // NOTE: This is for demonstration of "fully functional" as requested.
     QString downloadUrl = QString("https://d.apkpure.com/b/APK/%1?version=latest").arg(packageId);
     downloadAPK(packageId, downloadUrl);
 }
@@ -110,7 +107,7 @@ void KStoreBackend::downloadAPK(const QString &packageId, const QString &url)
 {
     QNetworkRequest request((QUrl(url)));
     request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-    request.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 
     QNetworkReply *reply = m_network->get(request);
     reply->setProperty("packageId", packageId);
@@ -150,12 +147,10 @@ void KStoreBackend::onDownloadFinished()
                 process->deleteLater();
             });
 
-            // Real waydroid command
             process->start("waydroid", QStringList() << "app" << "install" << tempPath);
 
-            // Sandbox fallback
             if (!process->waitForStarted(500)) {
-                emit installationFinished(packageId, true, "Simulated successful installation of " + packageId);
+                emit installationFinished(packageId, false, "Waydroid not found or failed to start.");
                 QFile::remove(tempPath);
             }
         }
