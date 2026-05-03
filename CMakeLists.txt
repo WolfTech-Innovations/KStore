@@ -10,7 +10,7 @@ set(CMAKE_AUTORCC ON)
 find_package(ECM 5.80.0 REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
-find_package(Qt5 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
 find_package(KF5 REQUIRED COMPONENTS Kirigami2 I18n CoreAddons)
 
 add_executable(kstore
@@ -21,13 +21,13 @@ add_executable(kstore
 )
 
 target_link_libraries(kstore
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Qml
-    Qt5::Quick
-    Qt5::QuickControls2
-    Qt5::Widgets
-    Qt5::Network
+    Qt6::Core
+    Qt6::Gui
+    Qt6::Qml
+    Qt6::Quick
+    Qt6::QuickControls2
+    Qt6::Widgets
+    Qt6::Network
     KF5::Kirigami2
     KF5::I18n
     KF5::CoreAddons
