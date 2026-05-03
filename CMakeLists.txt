@@ -10,8 +10,8 @@ set(CMAKE_AUTORCC ON)
 find_package(ECM 5.80.0 REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
-find_package(KF6 REQUIRED COMPONENTS Kirigami I18n CoreAddons)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
+find_package(KF5 REQUIRED COMPONENTS Kirigami2 I18n CoreAddons)
 
 add_executable(kstore
     src/main.cpp
@@ -21,16 +21,25 @@ add_executable(kstore
 )
 
 target_link_libraries(kstore
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Qml
-    Qt6::Quick
-    Qt6::QuickControls2
-    Qt6::Widgets
-    Qt6::Network
-    KF6::Kirigami
-    KF6::I18n
-    KF6::CoreAddons
+    Qt5::Core
+    Qt5::Gui
+    Qt5::Qml
+    Qt5::Quick
+    Qt5::QuickControls2
+    Qt5::Widgets
+    Qt5::Network
+    KF5::Kirigami2
+    KF5::I18n
+    KF5::CoreAddons
 )
+
+# Tests
+add_executable(test_backend tests/test_backend.cpp src/kstorebackend.cpp)
+target_link_libraries(test_backend Qt5::Core Qt5::Network)
+target_include_directories(test_backend PRIVATE src)
+
+add_executable(test_functional tests/test_functional.cpp src/kstorebackend.cpp)
+target_link_libraries(test_functional Qt5::Core Qt5::Network)
+target_include_directories(test_functional PRIVATE src)
 
 install(TARGETS kstore ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
