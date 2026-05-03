@@ -28,7 +28,7 @@ target_link_libraries(kstore
     Qt6::QuickControls2
     Qt6::Widgets
     Qt6::Network
-    KF6::Kirigami2
+    KF6::Kirigami
     KF6::I18n
     KF6::CoreAddons
 )
