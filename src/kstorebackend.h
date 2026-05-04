@@ -39,7 +39,6 @@ private:
     QVariantList m_apps;
     bool m_loading = false;
     QNetworkAccessManager *m_network;
-    int m_pendingRequests = 0;
     void setLoading(bool loading);
     void downloadAPK(const QString &packageId, const QString &url);
 };

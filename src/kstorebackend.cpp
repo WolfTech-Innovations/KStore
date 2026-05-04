@@ -30,10 +30,8 @@ void KStoreBackend::fetchApps(const QString &query)
     m_apps.clear();
     emit appsChanged();
 
-    QString category = "Android App";
     QStringList curated;
     if (query.contains("streaming", Qt::CaseInsensitive)) {
-        category = "Streaming";
         curated << "com.netflix.mediaclient"
                 << "com.google.android.youtube"
                 << "com.disney.disneyplus"
@@ -41,27 +39,20 @@ void KStoreBackend::fetchApps(const QString &query)
                 << "com.hulu.plus"
                 << "com.plexapp.android"
                 << "tv.twitch.android.app";
-    } else if (query.contains("remote", Qt::CaseInsensitive) || query.contains("control", Qt::CaseInsensitive)) {
-        category = "Remote Compatible";
-        curated << "org.xbmc.kodi"
-                << "org.videolan.vlc"
-                << "com.google.android.apps.chromecast.app";
     } else {
         curated << "org.xbmc.kodi"
                 << "org.videolan.vlc"
                 << "com.google.android.apps.chromecast.app";
     }
 
-    m_pendingRequests = curated.size();
-    if (m_pendingRequests == 0) setLoading(false);
-
     for (const QString &id : curated) {
         QUrl url("https://play.google.com/store/apps/details?id=" + id);
         QNetworkRequest request(url);
         request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+        // In Qt6, FollowRedirectsAttribute is gone. Use RedirectPolicyAttribute.
+        request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
         QNetworkReply *detailsReply = m_network->get(request);
         detailsReply->setProperty("packageId", id);
-        detailsReply->setProperty("category", category);
         connect(detailsReply, &QNetworkReply::finished, this, &KStoreBackend::onAppDetailsFinished);
     }
 }
@@ -71,10 +62,7 @@ void KStoreBackend::onAppDetailsFinished()
     QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
     if (!reply) return;
 
-    m_pendingRequests--;
-
     QString packageId = reply->property("packageId").toString();
-    QString category = reply->property("category").toString();
     if (reply->error() == QNetworkReply::NoError) {
         QString html = reply->readAll();
 
@@ -100,11 +88,11 @@ void KStoreBackend::onAppDetailsFinished()
         app["name"] = name;
         app["packageId"] = packageId;
         app["icon"] = icon;
-        app["category"] = category;
+        app["category"] = "Android App";
         m_apps.append(app);
         emit appsChanged();
     }
-    if (m_pendingRequests <= 0) setLoading(false);
+    setLoading(false);
     reply->deleteLater();
 }
 
@@ -121,6 +109,7 @@ void KStoreBackend::downloadAPK(const QString &packageId, const QString &url)
 {
     QNetworkRequest request((QUrl(url)));
     request.setHeader(QNetworkRequest::UserAgentHeader, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+    // Explicitly use RedirectPolicyAttribute for Qt6
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
 
     QNetworkReply *reply = m_network->get(request);

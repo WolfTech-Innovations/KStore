@@ -1,7 +1,7 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
-import org.kde.kirigami 2.20 as Kirigami
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
 
 Kirigami.ApplicationWindow {
     id: root
@@ -96,8 +96,6 @@ Kirigami.ApplicationWindow {
                                 text: "Install"
                                 Layout.alignment: Qt.AlignHCenter
                                 Layout.fillWidth: true
-                                Kirigami.Theme.inherit: false
-                                Kirigami.Theme.colorSet: Kirigami.Theme.Button
 
                                 onClicked: {
                                     backend.installApp(modelData.packageId)
