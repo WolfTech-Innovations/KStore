@@ -41,6 +41,12 @@ private:
     QNetworkAccessManager *m_network;
     void setLoading(bool loading);
     void downloadAPK(const QString &packageId, const QString &url);
+
+    bool   m_waydroidLaunched = false;
+
+    QString waydroidContainerIp() const;
+    void    ensureWaydroidStarted();
+    void    tryAdbInstall(const QString &packageId,const QString &apkPath,int attempt);
 };
 
 #endif // KSTOREBACKEND_H
