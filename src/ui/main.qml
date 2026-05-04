@@ -20,6 +20,16 @@ Kirigami.ApplicationWindow {
     readonly property color textMuted:   "#808090"
     readonly property color divider:     "#2a2a34"
 
+    // FIX: helper to decode HTML entities from backend strings
+    function decodeHtml(str) {
+        return str
+            .replace(/&amp;/g,  "&")
+            .replace(/&lt;/g,   "<")
+            .replace(/&gt;/g,   ">")
+            .replace(/&quot;/g, "\"")
+            .replace(/&#39;/g,  "'")
+    }
+
     background: Rectangle { color: root.bgBase }
 
     // ── Sidebar ────────────────────────────────────────────────────────────
@@ -39,8 +49,9 @@ Kirigami.ApplicationWindow {
                 anchors.centerIn: parent
                 spacing: 4
 
+                // FIX: use "applications-all" — more universally available in KF6 icon themes
                 Kirigami.Icon {
-                    source: "view-app-grid"
+                    source: "applications-all"
                     Layout.alignment: Qt.AlignHCenter
                     implicitWidth: 32
                     implicitHeight: 32
@@ -113,7 +124,8 @@ Kirigami.ApplicationWindow {
                 readonly property int cols: Math.max(1, Math.floor(width / minCellW))
 
                 cellWidth:  Math.floor(width / cols)
-                cellHeight: Kirigami.Units.gridUnit * 19
+                // FIX: bumped from 19 to 21 so Install button is never clipped
+                cellHeight: Kirigami.Units.gridUnit * 21
 
                 clip: true
                 focus: true
@@ -140,7 +152,7 @@ Kirigami.ApplicationWindow {
                         border.width: delegateRoot.isFocused || hoverHandler.hovered ? 2 : 0
                         opacity: delegateRoot.isFocused ? 1.0 : 0.5
 
-                        Behavior on opacity     { NumberAnimation { duration: 120 } }
+                        Behavior on opacity      { NumberAnimation { duration: 120 } }
                         Behavior on border.width { NumberAnimation { duration: 80  } }
                     }
 
@@ -199,9 +211,9 @@ Kirigami.ApplicationWindow {
                                 }
                             }
 
-                            // App name
+                            // FIX: decode HTML entities in app name
                             Label {
-                                text: modelData.name
+                                text: root.decodeHtml(modelData.name)
                                 font.bold: true
                                 font.pixelSize: 16
                                 color: root.textPrimary
@@ -210,9 +222,9 @@ Kirigami.ApplicationWindow {
                                 elide: Text.ElideRight
                             }
 
-                            // Package ID
+                            // Package ID (no entities expected but decode anyway)
                             Label {
-                                text: modelData.packageId
+                                text: root.decodeHtml(modelData.packageId)
                                 font.pixelSize: 11
                                 color: root.textMuted
                                 Layout.fillWidth: true
@@ -275,7 +287,7 @@ Kirigami.ApplicationWindow {
                 visible: backend.apps.length === 0 && !backend.loading
 
                 Kirigami.Icon {
-                    source: "view-app-grid"
+                    source: "applications-all"
                     width: 64; height: 64
                     color: root.textMuted
                     anchors.horizontalCenter: parent.horizontalCenter
