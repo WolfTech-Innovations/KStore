@@ -9,17 +9,61 @@ Kirigami.ApplicationWindow {
     height: 720
     title: "KStore - WolfTech Innovations"
 
-    globalDrawer: Kirigami.GlobalDrawer {
-        title: "KStore"
-        titleIcon: "view-app-grid"
+    // ── Palette ────────────────────────────────────────────────────────────
+    readonly property color bgBase:      "#0d0d0f"
+    readonly property color bgSurface:   "#18181c"
+    readonly property color bgCard:      "#1e1e24"
+    readonly property color bgCardHover: "#26262e"
+    readonly property color accent:      "#ffffff"
+    readonly property color accentDim:   "#44ffffff"
+    readonly property color textPrimary: "#f0f0f0"
+    readonly property color textMuted:   "#808090"
+    readonly property color divider:     "#2a2a34"
 
-        Kirigami.AbstractCard {
-            Layout.fillWidth: true
-            contentItem: Label {
-                text: "WolfTech Innovations"
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: 20
+    background: Rectangle { color: root.bgBase }
+
+    // ── Sidebar ────────────────────────────────────────────────────────────
+    globalDrawer: Kirigami.GlobalDrawer {
+        title: ""
+        titleIcon: ""
+        bannerVisible: false
+        modal: false
+        width: Kirigami.Units.gridUnit * 14
+
+        background: Rectangle { color: root.bgSurface }
+
+        header: Item {
+            width: parent.width
+            height: Kirigami.Units.gridUnit * 5
+
+            ColumnLayout {
+                anchors.centerIn: parent
+                spacing: 4
+
+                Kirigami.Icon {
+                    source: "view-app-grid"
+                    Layout.alignment: Qt.AlignHCenter
+                    implicitWidth: 32
+                    implicitHeight: 32
+                    color: root.textPrimary
+                }
+
+                Label {
+                    text: "KStore"
+                    font.pixelSize: 20
+                    font.bold: true
+                    font.letterSpacing: 3
+                    color: root.textPrimary
+                    Layout.alignment: Qt.AlignHCenter
+                }
+
+                Label {
+                    text: "WolfTech Innovations"
+                    font.pixelSize: 10
+                    color: root.textMuted
+                    font.letterSpacing: 1
+                    Layout.alignment: Qt.AlignHCenter
+                }
             }
         }
 
@@ -48,66 +92,213 @@ Kirigami.ApplicationWindow {
         ]
     }
 
+    // ── Apps Page ──────────────────────────────────────────────────────────
     Component {
         id: appsPage
-        Kirigami.ScrollablePage {
-            title: "App Store"
 
-            Kirigami.CardsGridView {
+        Kirigami.Page {
+            title: ""
+            background: Rectangle { color: root.bgBase }
+
+            padding: 0
+            topPadding: Kirigami.Units.gridUnit * 1.5
+
+            GridView {
+                id: appsGrid
+                anchors.fill: parent
+                anchors.margins: Kirigami.Units.gridUnit
+
                 model: backend.apps
-                delegate: Kirigami.AbstractCard {
-                    id: card
-                    implicitWidth: 280
-                    implicitHeight: 350
 
-                    contentItem: Item {
+                readonly property int minCellW: Kirigami.Units.gridUnit * 17
+                readonly property int cols: Math.max(1, Math.floor(width / minCellW))
+
+                cellWidth:  Math.floor(width / cols)
+                cellHeight: Kirigami.Units.gridUnit * 19
+
+                clip: true
+                focus: true
+
+                Keys.onLeftPressed:  if (currentIndex > 0) currentIndex--
+                Keys.onRightPressed: if (currentIndex < count - 1) currentIndex++
+                Keys.onUpPressed:    if (currentIndex >= cols) currentIndex -= cols
+                Keys.onDownPressed:  if (currentIndex + cols < count) currentIndex += cols
+
+                delegate: Item {
+                    id: delegateRoot
+                    width:  appsGrid.cellWidth
+                    height: appsGrid.cellHeight
+
+                    readonly property bool isFocused: appsGrid.currentIndex === index
+
+                    // White selection outline
+                    Rectangle {
+                        anchors.fill: cardBody
+                        anchors.margins: -2
+                        radius: cardBody.radius + 2
+                        color: "transparent"
+                        border.color: root.accent
+                        border.width: delegateRoot.isFocused || hoverHandler.hovered ? 2 : 0
+                        opacity: delegateRoot.isFocused ? 1.0 : 0.5
+
+                        Behavior on opacity     { NumberAnimation { duration: 120 } }
+                        Behavior on border.width { NumberAnimation { duration: 80  } }
+                    }
+
+                    // Card body
+                    Rectangle {
+                        id: cardBody
+                        anchors.fill: parent
+                        anchors.margins: Kirigami.Units.largeSpacing / 2
+                        radius: 16
+                        color: hoverHandler.hovered ? root.bgCardHover : root.bgCard
+
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        // Subtle top highlight
+                        Rectangle {
+                            width: parent.width * 0.5
+                            height: 1
+                            anchors.top: parent.top
+                            anchors.topMargin: 1
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            radius: 1
+                            color: root.accentDim
+                            opacity: delegateRoot.isFocused ? 1.0 : 0.3
+                        }
+
                         ColumnLayout {
                             anchors.fill: parent
                             anchors.margins: Kirigami.Units.largeSpacing
-                            spacing: Kirigami.Units.mediumSpacing
+                            spacing: Kirigami.Units.smallSpacing
 
-                            Image {
-                                Layout.preferredWidth: 128
-                                Layout.preferredHeight: 128
+                            // Icon container
+                            Rectangle {
                                 Layout.alignment: Qt.AlignHCenter
-                                source: modelData.icon || "application-x-executable"
-                                fillMode: Image.PreserveAspectFit
+                                Layout.preferredWidth: 80
+                                Layout.preferredHeight: 80
+                                radius: 18
+                                color: root.bgSurface
+
+                                Image {
+                                    id: appIcon
+                                    anchors.centerIn: parent
+                                    width: 60
+                                    height: 60
+                                    source: modelData.icon || ""
+                                    fillMode: Image.PreserveAspectFit
+                                    visible: status === Image.Ready
+                                }
+
+                                Kirigami.Icon {
+                                    anchors.centerIn: parent
+                                    width: 40
+                                    height: 40
+                                    source: "application-x-executable"
+                                    color: root.textMuted
+                                    visible: appIcon.status !== Image.Ready
+                                }
                             }
 
+                            // App name
                             Label {
                                 text: modelData.name
                                 font.bold: true
+                                font.pixelSize: 16
+                                color: root.textPrimary
                                 Layout.fillWidth: true
                                 horizontalAlignment: Text.AlignHCenter
                                 elide: Text.ElideRight
-                                font.pixelSize: 18
                             }
 
+                            // Package ID
                             Label {
                                 text: modelData.packageId
-                                font.pixelSize: 12
-                                opacity: 0.6
+                                font.pixelSize: 11
+                                color: root.textMuted
                                 Layout.fillWidth: true
                                 horizontalAlignment: Text.AlignHCenter
                                 elide: Text.ElideMiddle
                             }
 
-                            Button {
-                                text: "Install"
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.fillWidth: true
+                            Item { Layout.fillHeight: true }
 
-                                onClicked: {
-                                    backend.installApp(modelData.packageId)
+                            // Install button
+                            Rectangle {
+                                Layout.fillWidth: true
+                                Layout.preferredHeight: 38
+                                radius: 10
+                                color: installMouse.pressed
+                                    ? Qt.rgba(1,1,1,0.15)
+                                    : installMouse.containsMouse
+                                        ? Qt.rgba(1,1,1,0.10)
+                                        : Qt.rgba(1,1,1,0.06)
+                                border.color: root.divider
+                                border.width: 1
+
+                                Behavior on color { ColorAnimation { duration: 100 } }
+
+                                Label {
+                                    anchors.centerIn: parent
+                                    text: "Install"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                    font.letterSpacing: 1
+                                    color: root.textPrimary
+                                }
+
+                                MouseArea {
+                                    id: installMouse
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: backend.installApp(modelData.packageId)
                                 }
                             }
                         }
                     }
+
+                    HoverHandler { id: hoverHandler }
+
+                    TapHandler {
+                        onTapped: {
+                            appsGrid.currentIndex = index
+                            appsGrid.forceActiveFocus()
+                        }
+                    }
+                }
+            }
+
+            // Empty state
+            Column {
+                anchors.centerIn: parent
+                spacing: Kirigami.Units.largeSpacing
+                visible: backend.apps.length === 0 && !backend.loading
+
+                Kirigami.Icon {
+                    source: "view-app-grid"
+                    width: 64; height: 64
+                    color: root.textMuted
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                Label {
+                    text: "No apps found"
+                    font.pixelSize: 20
+                    font.bold: true
+                    color: root.textPrimary
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                Label {
+                    text: "Try a different category or check your connection."
+                    font.pixelSize: 13
+                    color: root.textMuted
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
             }
         }
     }
 
+    // ── About Page ─────────────────────────────────────────────────────────
     Component {
         id: aboutPage
         Kirigami.AboutPage {
@@ -130,23 +321,74 @@ Kirigami.ApplicationWindow {
 
     pageStack.initialPage: appsPage
 
-    footer: Kirigami.ActionToolBar {
-        actions: [
-            Kirigami.Action {
-                text: "Refresh"
-                icon.name: "view-refresh"
-                onTriggered: backend.fetchApps()
+    // ── Footer ─────────────────────────────────────────────────────────────
+    footer: Rectangle {
+        width: parent.width
+        height: 48
+        color: root.bgSurface
+
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: root.divider
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Kirigami.Units.largeSpacing
+            anchors.rightMargin: Kirigami.Units.largeSpacing
+
+            Label {
+                text: "KSTORE"
+                font.pixelSize: 11
+                font.letterSpacing: 3
+                font.bold: true
+                color: root.textMuted
             }
-        ]
+
+            Item { Layout.fillWidth: true }
+
+            Rectangle {
+                width: 100
+                height: 32
+                radius: 8
+                color: refreshMouse.pressed
+                    ? Qt.rgba(1,1,1,0.12)
+                    : refreshMouse.containsMouse
+                        ? Qt.rgba(1,1,1,0.07)
+                        : "transparent"
+                border.color: root.divider
+                border.width: 1
+
+                Behavior on color { ColorAnimation { duration: 100 } }
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 6
+                    Kirigami.Icon {
+                        source: "view-refresh"
+                        width: 14; height: 14
+                        color: root.textMuted
+                    }
+                    Label {
+                        text: "Refresh"
+                        font.pixelSize: 12
+                        color: root.textMuted
+                    }
+                }
+
+                MouseArea {
+                    id: refreshMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: backend.fetchApps()
+                }
+            }
+        }
     }
 
-    Kirigami.PlaceholderMessage {
-        anchors.centerIn: parent
-        visible: backend.apps.length === 0 && !backend.loading
-        text: "No apps found"
-        explanation: "Try searching for something else or check your connection."
-    }
-
+    // ── Loading bar ────────────────────────────────────────────────────────
     ProgressBar {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
@@ -155,10 +397,11 @@ Kirigami.ApplicationWindow {
         visible: backend.loading
     }
 
+    // ── Notifications ──────────────────────────────────────────────────────
     Connections {
         target: backend
         function onInstallationStarted(packageId) {
-            root.showPassiveNotification("Installation started for " + packageId)
+            root.showPassiveNotification("Installing " + packageId + "…")
         }
         function onInstallationFinished(packageId, success, message) {
             root.showPassiveNotification(message)
