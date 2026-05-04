@@ -55,3 +55,22 @@ target_link_libraries(kstore
 )
 
 install(TARGETS kstore ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})
+
+enable_testing()
+add_executable(test_backend tests/test_backend.cpp src/kstorebackend.cpp src/kstorebackend.h)
+target_link_libraries(test_backend
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Network
+    ${KDE_COREADDONS}
+    ${KDE_I18N}
+)
+add_test(NAME test_backend COMMAND test_backend)
+
+add_executable(test_functional tests/test_functional.cpp src/kstorebackend.cpp src/kstorebackend.h)
+target_link_libraries(test_functional
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Network
+    ${KDE_COREADDONS}
+    ${KDE_I18N}
+)
+add_test(NAME test_functional COMMAND test_functional)
