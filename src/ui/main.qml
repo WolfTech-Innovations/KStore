@@ -26,7 +26,6 @@ Kirigami.ApplicationWindow {
     globalDrawer: Kirigami.GlobalDrawer {
         title: ""
         titleIcon: ""
-        bannerVisible: false
         modal: false
         width: Kirigami.Units.gridUnit * 14
 
