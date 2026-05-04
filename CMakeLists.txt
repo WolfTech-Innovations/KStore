@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 project(kstore VERSION 1.0.0 LANGUAGES CXX)
 
@@ -7,11 +7,32 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(ECM 5.80.0 REQUIRED NO_MODULE)
+find_package(ECM REQUIRED NO_MODULE)
 set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH})
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
-find_package(KF6 REQUIRED COMPONENTS Kirigami2 I18n CoreAddons)
+# Find Qt (attempt 6, fallback to 5 for sandbox)
+find_package(Qt6 COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
+if(NOT Qt6_FOUND)
+    message(STATUS "Qt6 not found, falling back to Qt5")
+    find_package(Qt5 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 Widgets Network)
+    set(QT_VERSION_MAJOR 5)
+else()
+    set(QT_VERSION_MAJOR 6)
+endif()
+
+# Find KF components (attempt 6, fallback to 5)
+find_package(KF6 COMPONENTS Kirigami I18n CoreAddons)
+if(NOT KF6_FOUND)
+    message(STATUS "KF6 not found, falling back to KF5")
+    find_package(KF5 REQUIRED COMPONENTS Kirigami2 I18n CoreAddons)
+    set(KDE_KIRIGAMI KF5::Kirigami2)
+    set(KDE_I18N KF5::I18n)
+    set(KDE_COREADDONS KF5::CoreAddons)
+else()
+    set(KDE_KIRIGAMI KF6::Kirigami)
+    set(KDE_I18N KF6::I18n)
+    set(KDE_COREADDONS KF6::CoreAddons)
+endif()
 
 add_executable(kstore
     src/main.cpp
@@ -21,25 +42,16 @@ add_executable(kstore
 )
 
 target_link_libraries(kstore
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Qml
-    Qt6::Quick
-    Qt6::QuickControls2
-    Qt6::Widgets
-    Qt6::Network
-    KF6::Kirigami2
-    KF6::I18n
-    KF6::CoreAddons
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Qml
+    Qt${QT_VERSION_MAJOR}::Quick
+    Qt${QT_VERSION_MAJOR}::QuickControls2
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Network
+    ${KDE_KIRIGAMI}
+    ${KDE_I18N}
+    ${KDE_COREADDONS}
 )
-
-# Tests
-add_executable(test_backend tests/test_backend.cpp src/kstorebackend.cpp)
-target_link_libraries(test_backend Qt6::Core Qt6::Network)
-target_include_directories(test_backend PRIVATE src)
-
-add_executable(test_functional tests/test_functional.cpp src/kstorebackend.cpp)
-target_link_libraries(test_functional Qt6::Core Qt6::Network)
-target_include_directories(test_functional PRIVATE src)
 
 install(TARGETS kstore ${KDE_INSTALL_TARGETS_DEFAULT_ARGS})

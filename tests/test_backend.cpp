@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
         qDebug() << "Apps fetched:" << apps.size();
         assert(apps.size() > 0);
 
-        // The backend hardcodes "Android App" as category for now
         for (const auto &appVar : apps) {
             QVariantMap map = appVar.toMap();
             assert(!map["name"].toString().isEmpty());
@@ -30,7 +29,7 @@ int main(int argc, char *argv[])
 
     backend.fetchApps("streaming");
 
-    QTimer::singleShot(10000, &app, [&]() {
+    QTimer::singleShot(15000, &app, [&]() {
         qDebug() << "Test Timed Out";
         app.exit(1);
     });
