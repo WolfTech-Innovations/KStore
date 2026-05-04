@@ -1,4 +1,5 @@
 # KStore by WolfTech Innovations
+<img width="1366" height="736" alt="image" src="https://github.com/user-attachments/assets/9925c2d0-a87c-47e5-b810-e5ba56d63f76" />
 
 KStore is a simple, TV-friendly app store for Plasma Bigscreen. It allows users to easily fetch and install filtered Android applications (specifically streaming and remote-compatible apps) through Waydroid.
 
